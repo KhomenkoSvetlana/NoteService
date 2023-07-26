@@ -6,19 +6,19 @@ interface Identifiable {
 }
 
 data class Note(
-        override val id: Int,
-        val userId: Int,
-        val title: String,
-        override val text: String,
-        val delete: Boolean = false,
-        val comments: MutableList<Comment> = mutableListOf()
+    override val id: Int,
+    val userId: Int,
+    val title: String,
+    override val text: String,
+    val delete: Boolean = false,
+    val comments: MutableList<Comment> = mutableListOf()
 ) : Identifiable
 
 data class Comment(
-        override val id: Int = 0,
-        val noteId: Int = 0,
-        override val text: String,
-        val delete: Boolean = false,
+    override val id: Int = 0,
+    val noteId: Int = 0,
+    override val text: String,
+    val delete: Boolean = false,
 ) : Identifiable
 
 object NoteService {
@@ -33,145 +33,99 @@ object NoteService {
         println()
     }
 
-    fun <T : Identifiable> add(list: List<T>) {
-        for (objects in list) {
-            when (objects) {
-                is Note ->
-                    when (noteList.isEmpty()) {
-                        true -> noteList.add(objects.copy(delete = false))
-                        false ->
-                            for (i in noteList.indices) {
-                                if (noteList[i].id != objects.id) noteList.add(objects.copy(delete = false))
-                            }
-                    }
-
-                is Comment -> for (i in noteList.indices) {
-                    if (noteList[i].id == objects.noteId) {
-                        noteComment.add(objects.copy(delete = false))
+    fun <T : Identifiable> add(elem: T): Identifiable {
+        return when (elem) {
+            is Note -> {
+                when (noteList.isEmpty()) {
+                    true -> noteList.add(elem.copy(delete = false))
+                    false -> {
+                        for (i in noteList.indices) if (elem.id != noteList[i].id) noteList.add(elem.copy(delete = false))
                     }
                 }
-
-                else -> throw IllegalArgumentException("Unknown type")
+                noteList.last()
             }
-        }
-    }
-    
 
-    fun <T : Identifiable> delete(idDelete: Int, list: List<T>) {
-        for (objects in list) {
-            when (objects) {
-                is Note -> {
-                    for (j in noteComment.indices) {
-                        if (idDelete == noteComment[j].noteId) {
-                            val x = noteComment[j]
-                            noteComment.remove(noteComment[j])
-                            noteComment.add(j, x.copy(delete = true))
-                        }
-                    }
-
-                    for (i in noteList.indices) {
-                        if (idDelete == noteList[i].id) {
-                            val x = noteList[i]
-                            noteList.remove(noteList[i])
-                            noteList.add(i, x.copy(delete = true))
-                        }
+            is Comment -> {
+                for (i in noteList.indices) {
+                    if (noteList[i].id == elem.noteId) {
+                        noteComment.add(elem.copy(delete = false))
                     }
                 }
+                noteComment.last()
+            }
 
-                is Comment ->
-                    for (i in noteComment.indices) {
-                        if (idDelete == noteComment[i].id) {
-                            val x = noteComment[i]
-                            noteComment.remove(noteComment[i])
-                            noteComment.add(x.copy(delete = true))
+            else -> throw Exception("Список для этого типа элементов не определён в сервисе")
+        }
+    }
+
+    fun <T : Identifiable> delete(elem: T): Boolean {
+        return when (elem) {
+            is Note -> {
+                for (i in noteList.indices) {
+                    val x = noteList[i]
+                    if (elem.id == noteList[i].id) {
+                        noteList.remove(noteList[i])
+                        noteList += x.copy(delete = true)
+                        noteList.last()
+                        return true
                         }
                     }
-
-                else -> throw IllegalArgumentException("Unknown type")
-            }
-        }
-    }
-
-    fun <T : Identifiable> edit(id: Int, list: List<T>) {
-        for (objects in list) {
-            when (objects) {
-                is Note ->
-                    for (i in noteList.indices) {
-                        val x = objects
-                        if (noteList[i].id == id && !noteList[i].delete) {
-                            noteList.remove(noteList[i])
-                            noteList.add(x)
-                        }
+                for (j in noteComment.indices){
+                    val y = noteComment[j]
+                    if( noteComment[j].noteId == elem.id){
+                        noteComment.remove(noteComment[j])
+                        noteComment += y.copy(delete = true)
+                        noteComment.last()
                     }
+                }
+                return false
+            }
 
-                is Comment ->
-                    for (i in noteComment.indices) {
-                        if (noteComment[i].id == id && !noteComment[i].delete) {
-                            noteComment.remove(noteComment[i])
-                            noteComment.add(i, objects)
-                        }
+            is Comment -> {
+                for (i in noteComment.indices) {
+                    if (elem.id == noteComment[i].id) {
+                        noteComment += noteComment[i].copy(delete = true)
+                        noteComment.last()
+                        return true
                     }
+                }
+                return false
             }
+
+            else -> throw IllegalArgumentException("Unknown type")
         }
     }
 
-    /*fun addNote(note: Note): Note {
-        noteList += note.copy()
-        return noteList.last()
-    }
-
-    fun createComment(comment: Comment): Comment {
-        for (i in noteList.indices) {
-            if (noteList[i].id == comment.noteId) {
-                noteComment += comment.copy()
+    fun <T : Identifiable> edit(elem: T): Boolean {
+        return when (elem) {
+            is Note -> {
+                for (i in noteList.indices) {
+                    if (elem.id == noteList[i].id) { //&& noteList[i].delete == false почему не работает проверка?
+                        noteList.remove(noteList[i])
+                        noteList += elem.copy()
+                        noteList.last()
+                        return true
+                    }
+                }
+                return false
             }
-        }
-        return noteComment.last()
-    }
 
-    fun deleteNote(idNoteDelete: Int, note: Note): Boolean {
-        for (i in noteList.indices) {
-            if (idNoteDelete == note.id) {
-                noteList.remove(noteList[i])
-                noteDeleteList += noteList[i]
-                return true
+            is Comment -> {
+                for (i in noteComment.indices) {
+                    val x = noteComment[i]
+                    if (noteComment[i].id == elem.id && !noteComment[i].delete) {
+                        noteComment.remove(noteComment[i])
+                        noteComment += x.copy()
+                        noteComment.last()
+                        return true
+                    }
+                }
+                return false
             }
-        }
-        return false
-    }
 
-    fun deleteComment(idCommentDelete: Int, comment: Comment): Boolean {
-        for (i in noteComment.indices) {
-            if (idCommentDelete == comment.id) {
-                noteComment.remove(noteComment[i])
-                noteDeleteComment += noteComment[i]
-                return true
-            }
+            else -> throw IllegalArgumentException("Unknown type")
         }
-        return false
     }
-
-    fun editNote(newNote: Note): Boolean {
-        for (i in noteList.indices) {
-            if (newNote.id == noteList[i].id) {
-                noteList.remove(noteList[i])
-                noteList.add(newNote)
-                return true
-            }
-        }
-        return false
-    }
-
-    fun editComment(newComment: Comment): Boolean {
-        for (i in noteComment.indices) {
-            if (newComment.id == noteComment[i].id) {
-                noteComment.remove(noteComment[i])
-                noteComment.add(newComment)
-                return true
-            }
-        }
-        return false
-    }*/
 
     fun restoreComment(idComment: Int): Boolean {
         for (i in noteComment.indices) {
@@ -185,56 +139,55 @@ object NoteService {
         return false
     }
 
-    fun getById(idNote: Int): Note {
+    fun getById(idNote: Int): Boolean {
         for (i in noteList.indices) {
             if (idNote == noteList[i].id) {
-                return noteList[i]
+                noteList += noteList[i]
+                return true
             }
         }
-        return throw IllegalAccessException("")
+        return false
     }
 
-    fun notesGet(userId: Int): Note {
+    fun notesGet(userId: Int): Boolean {
         for (i in noteList.indices) {
-            if (userId == noteList[i].userId && !noteList[i].delete) {
-                return noteList[i]
+            if (userId == noteList[i].userId && noteList[i].delete == false) {
+                return true
             } else {
                 "Not found note"
             }
         }
-        return throw IllegalAccessException ("Not found note")
+        return false
     }
 
-        fun notesGetComments(noteId: Int, comments: Comment): MutableList<Comment> {
-            var notesGetComments = mutableListOf<Comment>()
-            for (i in noteComment.indices) {
-                if (noteId == noteComment[i].noteId) {
-                    notesGetComments += comments
-                }
+    fun notesGetComments(userId: Int): Boolean {
+        for (i in noteComment.indices) {
+            if (userId == noteComment[i].noteId && noteList[i].delete == false) {
+                return true
+            } else {
+                "Not found note"
             }
-            return notesGetComments
         }
+        return false
     }
+}
 
 class NotFoundException(message: String) : RuntimeException(message)
 class NotFoundElement(message: String) : RuntimeException(message)
 
 fun main(args: Array<String>) {
-    NoteService.add(listOf(Note(1, 1, "title", "first")))
-    NoteService.add(listOf(Note(1, 1, "title", "repit first")))
-    NoteService.add(listOf(Note(2, 2, "title", "second")))
-    NoteService.add(listOf(Comment(1, 1, "comment")))
-    NoteService.add(listOf(Comment(2, 2, "comment2")))
+    NoteService.add(elem = Note(1, 1, "title", "text"))
+    NoteService.add(elem = Note(1, 1, "title", "repit first"))
+    NoteService.add(elem = Note(2, 2, "title", "second"))
+    NoteService.add(elem = Comment(1, 1, "comment"))
+    NoteService.add(elem = Comment(2, 2, "comment2"))
     NoteService.print()
-    NoteService.delete(1, list = listOf((Note(1, 1, "title", "first"))))
+    NoteService.delete(elem = Note(1, 1, "title", "text"))
     NoteService.print()
-    NoteService.delete(2, list = listOf(Comment(2, 2, "comment2")))
+    NoteService.edit(elem = Note(2, 2, "title", "second edit"))
     NoteService.print()
-    NoteService.edit(2, list = listOf(Note(2, 2, "title", "EDITE SECOND NOTE")))
+    println( NoteService.notesGet(2))
     NoteService.print()
-    NoteService.restoreComment(2)
-    NoteService.print()
-    println("Вывод функции getById ${NoteService.getById(2)}")
-    println("Вывод функции notesGet ${NoteService.notesGet(2)}")
-    println( NoteService.notesGetComments(2, Comment(2, 2, "comment2")))
+
+
 }
