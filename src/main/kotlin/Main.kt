@@ -39,7 +39,8 @@ object NoteService {
                 when (noteList.isEmpty()) {
                     true -> noteList.add(elem.copy(delete = false))
                     false -> {
-                        for (i in noteList.indices) if (elem.id != noteList[i].id) noteList.add(elem.copy(delete = false))
+                        for (i in noteList.indices) if (elem.id == noteList[i].id) throw Exception("Заметка с таким id уже существует")
+                        noteList.add(elem.copy(delete = false))
                     }
                 }
                 noteList.last()
@@ -83,7 +84,6 @@ object NoteService {
                 for (i in noteComment.indices) {
                     if (elem.id == noteComment[i].id) {
                         noteComment += noteComment[i].copy(delete = true)
-                        noteComment.last()
                         return true
                     }
                 }
@@ -150,25 +150,23 @@ object NoteService {
         for (i in noteList.indices) {
             if (userId == noteList[i].userId && !noteList[i].delete) {
                 notesGetList += noteList[i]
-                notesGetList.last()
-            } else {
-                throw ElemNotFindException("Not found note")
             }
         }
         return notesGetList
+
+        if (notesGetList.isEmpty()) throw ElemNotFindException("Not found note")
     }
 
     fun notesGetComments(userId: Int): MutableList<Comment> {
         val notesGetCommentsList = mutableListOf<Comment>()
         for (i in noteComment.indices) {
             if (userId == noteComment[i].noteId && !noteList[i].delete) {
-                notesGetCommentsList += noteComment[i]
-                notesGetCommentsList.last()
-            } else {
-                throw ElemNotFindException("Not found comment")
+                notesGetCommentsList += noteComment[i
             }
         }
         return notesGetCommentsList
+
+        if(notesGetCommentsList.isEmpty()) throw ElemNotFindException("Not found note")
     }
 }
 
