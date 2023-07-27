@@ -54,7 +54,7 @@ object NoteService {
                 noteComment.last()
             }
 
-            else -> throw Exception("Список для этого типа элементов не определён в сервисе")
+            else -> throw ElemNotFindException("Список для этого типа элементов не определён в сервисе")
         }
     }
 
@@ -66,7 +66,6 @@ object NoteService {
                     if (elem.id == noteList[i].id) {
                         noteList.remove(noteList[i])
                         noteList += x.copy(delete = true)
-                        noteList.last()
                         return true
                         }
                     }
@@ -75,7 +74,6 @@ object NoteService {
                     if( noteComment[j].noteId == elem.id){
                         noteComment.remove(noteComment[j])
                         noteComment += y.copy(delete = true)
-                        noteComment.last()
                     }
                 }
                 return false
@@ -103,7 +101,6 @@ object NoteService {
                     if (elem.id == noteList[i].id) { //&& noteList[i].delete == false почему не работает проверка?
                         noteList.remove(noteList[i])
                         noteList += elem.copy()
-                        noteList.last()
                         return true
                     }
                 }
@@ -116,7 +113,6 @@ object NoteService {
                     if (noteComment[i].id == elem.id && !noteComment[i].delete) {
                         noteComment.remove(noteComment[i])
                         noteComment += x.copy()
-                        noteComment.last()
                         return true
                     }
                 }
@@ -139,41 +135,44 @@ object NoteService {
         return false
     }
 
-    fun getById(idNote: Int): Boolean {
+    fun getById(idNote: Int): Note {
         for (i in noteList.indices) {
             if (idNote == noteList[i].id) {
-                noteList += noteList[i]
-                return true
+               return  noteList[i]
             }
         }
-        return false
+        throw ElemNotFindException("Not found note")
     }
 
-    fun notesGet(userId: Int): Boolean {
+
+    fun notesGet(userId: Int): MutableList<Note> {
+        val notesGetList = mutableListOf<Note>()
         for (i in noteList.indices) {
-            if (userId == noteList[i].userId && noteList[i].delete == false) {
-                return true
+            if (userId == noteList[i].userId && !noteList[i].delete) {
+                notesGetList += noteList[i]
+                notesGetList.last()
             } else {
-                "Not found note"
+                throw ElemNotFindException("Not found note")
             }
         }
-        return false
+        return notesGetList
     }
 
-    fun notesGetComments(userId: Int): Boolean {
+    fun notesGetComments(userId: Int): MutableList<Comment> {
+        val notesGetCommentsList = mutableListOf<Comment>()
         for (i in noteComment.indices) {
-            if (userId == noteComment[i].noteId && noteList[i].delete == false) {
-                return true
+            if (userId == noteComment[i].noteId && !noteList[i].delete) {
+                notesGetCommentsList += noteComment[i]
+                notesGetCommentsList.last()
             } else {
-                "Not found note"
+                throw ElemNotFindException("Not found comment")
             }
         }
-        return false
+        return notesGetCommentsList
     }
 }
 
-class NotFoundException(message: String) : RuntimeException(message)
-class NotFoundElement(message: String) : RuntimeException(message)
+class ElemNotFindException(msg: String) : RuntimeException(msg)
 
 fun main(args: Array<String>) {
     NoteService.add(elem = Note(1, 1, "title", "text"))
@@ -186,8 +185,6 @@ fun main(args: Array<String>) {
     NoteService.print()
     NoteService.edit(elem = Note(2, 2, "title", "second edit"))
     NoteService.print()
-    println( NoteService.notesGet(2))
+    println( "Вызов функции ${NoteService.getById(1)}")
     NoteService.print()
-
-
 }

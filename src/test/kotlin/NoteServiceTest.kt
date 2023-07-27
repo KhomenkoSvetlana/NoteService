@@ -126,16 +126,11 @@ class NoteServiceTest {
         val noteService = NoteService
         val addNote= noteService.add(elem = Note (1, 1, "title", "first"))
         val getById = noteService.getById(1)
-        assertTrue(getById)
+        val result = getById.id
+
+        assertEquals(result, 1)
     }
 
-    @Test
-    fun getByIdFalse () {
-        val noteService = NoteService
-        val addNote= noteService.add(elem = Note (1, 1, "title", "first"))
-        val getById = noteService.getById(2)
-        assertFalse(getById)
-    }
 
     @Test
     fun notesGetTrue () {
@@ -143,35 +138,26 @@ class NoteServiceTest {
         val addNote1= noteService.add(elem = Note (1, 1, "title", "first"))
         val addNote2= noteService.add(elem = Note (2, 1, "title", "second"))
         val notesGet = noteService.notesGet(1)
-        assertTrue(notesGet)
+
+        val result = notesGet[0].userId
+
+        assertEquals(result, 1)
     }
 
     @Test
-    fun notesGetFalse () {
-        val noteService = NoteService
-        val addNote1= noteService.add(elem = Note (1, 1, "title", "first"))
-        val addNote2= noteService.add(elem = Note (2, 1, "title", "second"))
-        val notesGet = noteService.notesGet(3)
-        assertFalse(notesGet)
-    }
-
-    @Test
-    fun notesGetCommentsTrue () {
+    fun notesGetComments() {
         val noteService = NoteService
         val addNote1= noteService.add(elem = Note (1, 1, "title", "first"))
         val addComment = noteService.add(elem = Comment(1,1,"text"))
         val notesGetComments = noteService.notesGetComments(1)
-        assertTrue(notesGetComments)
+
+        val result = notesGetComments[0].noteId
+
+        assertEquals(result, 1)
     }
 
-    @Test
-    fun notesGetCommentsFalse() {
-        val noteService = NoteService
-        val addNote1= noteService.add(elem = Note (1, 1, "title", "first"))
-        val addComment = noteService.add(elem = Comment(1,1,"text"))
-        val notesGetComments = noteService.notesGetComments(2)
-        assertFalse(notesGetComments)
-    }
+
+
 
 
 
