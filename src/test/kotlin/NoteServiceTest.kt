@@ -1,24 +1,29 @@
 import org.junit.Test
 
 import org.junit.Assert.*
+import org.junit.Before
 
 class NoteServiceTest {
+    @Before
+    fun clearBeforeTest() {
+        NoteService.clear()
+    }
+
 
     @Test
     fun addNote() {
         val noteService = NoteService
-        val addNote= noteService.add(elem = Note (1, 1, "title", "first"))
-
+        val addNote = NoteService.add(elem = Note (10, 1, "title", "first"))
         val addResult = addNote.id
 
-        assertEquals(addResult, 1)
+        assertEquals(addResult, 10)
     }
 
     @Test
     fun addComment() {
         val noteService = NoteService
-        val addNote= noteService.add(elem = Note (1, 1, "title", "first"))
-        val addComment = noteService.add(elem = Comment(1,1,"text"))
+        val addNote = NoteService.add(elem = Note (10, 1, "title", "first"))
+        val addComment = noteService.add(elem = Comment(1,10,"text"))
 
         val addResult = addComment.id
 
@@ -147,7 +152,7 @@ class NoteServiceTest {
     @Test
     fun notesGetComments() {
         val noteService = NoteService
-        val addNote1= noteService.add(elem = Note (1, 1, "title", "first"))
+        val addNote = noteService.add(elem = Note (1, 1, "title", "first"))
         val addComment = noteService.add(elem = Comment(1,1,"text"))
         val notesGetComments = noteService.notesGetComments(1)
 

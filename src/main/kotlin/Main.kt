@@ -22,8 +22,14 @@ data class Comment(
 ) : Identifiable
 
 object NoteService {
+
     private var noteList = mutableListOf<Note>()
     private var noteComment = mutableListOf<Comment>()
+
+    fun clear() {
+        noteList = mutableListOf<Note>()
+        noteComment = mutableListOf<Comment>()
+    }
 
     fun print() {
         for (i in noteList.indices) if (!noteList[i].delete) println(noteList[i])
@@ -161,7 +167,7 @@ object NoteService {
         val notesGetCommentsList = mutableListOf<Comment>()
         for (i in noteComment.indices) {
             if (userId == noteComment[i].noteId && !noteList[i].delete) {
-                notesGetCommentsList += noteComment[i
+                notesGetCommentsList += noteComment[i]
             }
         }
         return notesGetCommentsList
@@ -174,14 +180,14 @@ class ElemNotFindException(msg: String) : RuntimeException(msg)
 
 fun main(args: Array<String>) {
     NoteService.add(elem = Note(1, 1, "title", "text"))
-    NoteService.add(elem = Note(1, 1, "title", "repit first"))
+    NoteService.add(elem = Note(3, 1, "title", "repit first"))
     NoteService.add(elem = Note(2, 2, "title", "second"))
     NoteService.add(elem = Comment(1, 1, "comment"))
     NoteService.add(elem = Comment(2, 2, "comment2"))
     NoteService.print()
     NoteService.delete(elem = Note(1, 1, "title", "text"))
     NoteService.print()
-    NoteService.edit(elem = Note(2, 2, "title", "second edit"))
+    NoteService.edit(elem = Note(1, 2, "title", "second edit"))
     NoteService.print()
     println( "Вызов функции ${NoteService.getById(1)}")
     NoteService.print()
